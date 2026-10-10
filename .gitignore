@@ -1,0 +1,18 @@
+# Dependencias y entornos
+node_modules/
+.venv/
+__pycache__/
+
+# Credenciales: nunca subir
+.env
+
+# Datos locales de envíos
+data/
+*.db
+
+# Versiones archivadas (solo locales)
+_archivo/
+
+# Sistema
+.DS_Store
+Thumbs.db

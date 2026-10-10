@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Autogestión - Sistema de Envíos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        /* HEADER PROFESIONAL */
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .user-info {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* NAVEGACIÓN HORIZONTAL (TABS) */
+        .tabs-container {
+            background: white;
+            border-bottom: 2px solid #e8ecf1;
+            display: flex;
+            padding: 0 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .tab {
+            padding: 18px 30px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab:hover {
+            color: #2a5298;
+            background: #f9fafb;
+        }
+
+        .tab.active {
+            color: #2a5298;
+            border-bottom-color: #2a5298;
+        }
+
+        /* CONTENIDO */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid #e8ecf1;
+        }
+
+        .card h2 {
+            color: #1e3c72;
+            margin-bottom: 25px;
+            font-size: 20px;
+            border-bottom: 2px solid #f0f3f7;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d4dce6;
+            border-radius: 5px;
+            font-size: 13px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f3f7;
+            color: #2c3e50;
+            border: 1px solid #d4dce6;
+        }
+
+        .btn-secondary:hover {
+            background: #e8ecf1;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-zoom {
+            background: #f59e0b;
+            color: white;
+            grid-column: 1 / -1;
+            margin-top: 10px;
+        }
+
+        .btn-zoom:hover {
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: none;
+            border-left: 4px solid;
+            font-size: 13px;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #ecf8f3;
+            color: #0d5e3f;
+            border-color: #10b981;
+        }
+
+        .alert-danger {
+            background: #fef2f2;
+            color: #7f1d1d;
+            border-color: #ef4444;
+        }
+
+        .alert-warning {
+            background: #fffbeb;
+            color: #78350f;
+            border-color: #f59e0b;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #1e40af;
+            line-height: 1.5;
+        }
+
+        .shipment-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 12px;
+            border-left: 4px solid #2a5298;
+            font-size: 12px;
+        }
+
+        .shipment-item strong {
+            color: #2a5298;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .shipment-detail {
+            color: #666;
+            margin: 4px 0;
+            line-height: 1.5;
+        }
+
+        .guide-highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 700;
+            color: #92400e;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+        }
+
+        .zoom-sync-info {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 18px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #78350f;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-style: italic;
+        }
+
+        small {
+            display: block;
+            color: #999;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #2a5298;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2a5298;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="logo">📦 Portal de Autogestión - Envíos Internacionales</div>
+        <div class="user-info">✓ Sesión activa | Fecha: <span id="today"></span></div>
+    </header>
+
+    <!-- TABS -->
+    <div class="tabs-container">
+        <button class="tab active" onclick="switchTab('enviar')">📤 Enviar</button>
+        <button class="tab" onclick="switchTab('remitentes')">👤 Remitentes</button>
+        <button class="tab" onclick="switchTab('destinatarios')">👥 Destinatarios</button>
+        <button class="tab" onclick="switchTab('historial')">📊 Historial</button>
+        <button class="tab" onclick="switchTab('reportes')">📈 Reportes</button>
+        <button class="tab" onclick="switchTab('configuracion')">⚙️ Configuración</button>
+    </div>
+
+    <div class="container">
+        <!-- TAB 1: ENVIAR -->
+        <div id="enviar" class="tab-content active">
+            <div class="grid-2">
+                <!-- FORMULARIO -->
+                <div class="card">
+                    <h2>📝 Crear Nuevo Envío</h2>
+
+                    <div id="alertMessage" class="alert"></div>
+
+                    <div class="info-box">
+                        ℹ️ Completa todos los campos. El sistema validará automáticamente productos prohibidos en avión.
+                    </div>
+
+                    <form id="shipmentForm">
+                        <!-- REMITENTE -->
+                        <h3 style="font-size: 13px; color: #667eea; margin: 20px 0 15px; font-weight: 700;">REMITENTE</h3>
+                        
+                        <div class="form-group">
+                            <label>Cliente/Remitente</label>
+                            <select id="sender" onchange="loadSenderPhone()" required>
+                                <option value="">-- Selecciona remitente --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Teléfono Remitente</label>
+                            <input type="tel" id="senderPhone" required>
+                        </div>
+
+                        <!-- DESTINATARIO -->
+                        <h3 style="font-size: 13px; color: #667eea; margin: 20px 0 15px; font-weight: 700;">DESTINATARIO</h3>
+
+                        <div class="form-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="receiver" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>RUT/C.I. Destinatario</label>
+                                <input type="text" id="receiverRUT" placeholder="12.345.678-9" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono Destinatario</label>
+                                <input type="tel" id="receiverPhone" required>
+                            </div>
+                        </div>
+
+                        <!-- LOCALIDAD -->
+                        <h3 style="font-size: 13px; color: #667eea; margin: 20px 0 15px; font-weight: 700;">LOCALIDAD</h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>País Destino</label>
+                                <select id="destCountry" required onchange="loadDestCities()">
+                                    <option value="">-- País --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Ciudad Destino</label>
+                                <select id="destCity" required>
+                                    <option value="">-- Primero seleccione el país --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Sucursal Origen</label>
+                            <select id="originBranch" required>
+                                <option value="">-- Selecciona sucursal --</option>
+                            </select>
+                        </div>
+
+                        <!-- CONTENIDO -->
+                        <h3 style="font-size: 13px; color: #667eea; margin: 20px 0 15px; font-weight: 700;">CONTENIDO Y MEDIDAS</h3>
+
+                        <div class="form-group">
+                            <label>Descripción del Contenido</label>
+                            <textarea id="items" placeholder="Ej: Ropa, Electrónicos, Documentos..." required></textarea>
+                            <small>⚠️ Explosivos, Inflamables, Pesticidas, Químicos peligrosos = PROHIBIDOS EN AVIÓN</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Peso (kg)</label>
+                                <input type="number" id="weight" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Declarado ($)</label>
+                                <input type="number" id="value" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Dimensiones (cm)</label>
+                            <div class="form-row-3">
+                                <input type="number" id="length" placeholder="Largo" required>
+                                <input type="number" id="width" placeholder="Ancho" required>
+                                <input type="number" id="height" placeholder="Alto" required>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button type="submit" class="btn-success">✓ PROCESAR PAQUETE</button>
+                            <button type="reset" class="btn-secondary">🔄 Limpiar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- PREVIEW ZOOM -->
+                <div class="card">
+                    <h2>📦 Resumen para ZOOM.RED</h2>
+                    <div id="zoomPreview" class="empty-state">
+                        Completa el formulario para ver el resumen
+                    </div>
+                    <div id="invoiceSection" style="display: none;">
+                        <div class="zoom-sync-info">
+                            ✓ Los datos están listos para sincronizar con ZOOM.RED<br>
+                            Presiona el botón de abajo para enviar a la plataforma
+                        </div>
+                        <button class="btn-zoom" onclick="syncToZoom()">🔄 ENVIAR A ZOOM.RED</button>
+                        <button class="btn-zoom" style="background: #3b82f6; margin-top: 10px;" onclick="window.open('https://mi.zoom.red/', '_blank')">🌐 ABRIR ZOOM.RED DIRECTO</button>
+                        
+                        <!-- NUEVA SECCIÓN: Ingreso de Guía ZOOM -->
+                        <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid #eee;">
+                            <h3 style="font-size: 13px; color: #667eea; margin-bottom: 15px; font-weight: 700;">📌 DESPUÉS DE PROCESAR EN ZOOM:</h3>
+                            <div class="info-box">
+                                ℹ️ Una vez que proceses el paquete en ZOOM.RED, obtendrás un número de guía oficial. Ingrésalo aquí para actualizar el invoice.
+                            </div>
+                            <div class="form-group">
+                                <label>Número de Guía ZOOM (obtenido en zoom.red)</label>
+                                <input type="text" id="zoomGuideNumber" placeholder="Ej: 1664564537" style="font-weight: bold; font-size: 14px;">
+                            </div>
+                            <button class="btn-primary" style="grid-column: 1/-1; width: 100%;" onclick="updateZoomGuide()">✓ ACTUALIZAR CON GUÍA ZOOM</button>
+                        </div>
+                        
+                        <button class="btn-primary" style="grid-column: 1/-1; margin-top: 10px; width: 100%;" onclick="downloadInvoice()">📄 Descargar Invoice</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: REMITENTES -->
+        <div id="remitentes" class="tab-content">
+            <div class="card">
+                <h2>👤 Gestionar Remitentes</h2>
+                
+                <!-- AGREGAR NUEVO REMITENTE -->
+                <div style="margin-bottom: 30px; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h3 style="margin-bottom: 15px; color: #2a5298; font-size: 14px;">➕ Agregar Nuevo Remitente</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="newSenderName" placeholder="Ej: Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="newSenderPhone" placeholder="0412-1234567">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email (opcional)</label>
+                            <input type="email" id="newSenderEmail" placeholder="juan@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección (opcional)</label>
+                            <input type="text" id="newSenderAddress" placeholder="Calle Principal, Ciudad">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="addNewSender()" style="margin-top: 10px;">💾 Guardar Remitente</button>
+                </div>
+
+                <!-- LISTADO DE REMITENTES -->
+                <h3 style="margin-bottom: 15px; color: #2a5298; font-size: 14px;">📋 Remitentes Registrados</h3>
+                <div id="sendersList">
+                    <div class="empty-state">Cargando remitentes...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: DESTINATARIOS -->
+        <div id="destinatarios" class="tab-content">
+            <div class="card">
+                <h2>👥 Gestionar Destinatarios Frecuentes</h2>
+                
+                <!-- AGREGAR NUEVO DESTINATARIO -->
+                <div style="margin-bottom: 30px; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h3 style="margin-bottom: 15px; color: #2a5298; font-size: 14px;">➕ Agregar Nuevo Destinatario</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="newReceiverName" placeholder="Ej: Ana Rodríguez">
+                        </div>
+                        <div class="form-group">
+                            <label>RUT/C.I.</label>
+                            <input type="text" id="newReceiverRUT" placeholder="12.345.678-9">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="newReceiverPhone" placeholder="0412-1234567">
+                        </div>
+                        <div class="form-group">
+                            <label>Email (opcional)</label>
+                            <input type="email" id="newReceiverEmail" placeholder="ana@email.com">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="addNewReceiver()" style="margin-top: 10px;">💾 Guardar Destinatario</button>
+                </div>
+
+                <!-- LISTADO DE DESTINATARIOS -->
+                <h3 style="margin-bottom: 15px; color: #2a5298; font-size: 14px;">📋 Destinatarios Registrados</h3>
+                <div id="receiversList">
+                    <div class="empty-state">Cargando destinatarios...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: HISTORIAL -->
+        <div id="historial" class="tab-content">
+            <div class="card">
+                <h2>📊 Historial de Envíos</h2>
+                <div class="stats-dashboard">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalShipments">0</div>
+                        <div class="stat-label">Envíos Totales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="validatedCount">0</div>
+                        <div class="stat-label">Validados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="pendingCount">0</div>
+                        <div class="stat-label">Pendientes Zoom</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalWeight">0</div>
+                        <div class="stat-label">Peso Total (kg)</div>
+                    </div>
+                </div>
+                
+                <!-- BOTONES DE ACCIÓN -->
+                <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+                    <button class="btn-primary" onclick="downloadManifestExcel()" style="background: #10b981;">
+                        📊 DESCARGAR MANIFIESTO EXCEL
+                    </button>
+                    <button class="btn-secondary" onclick="downloadManifestCSV()">
+                        📄 DESCARGAR MANIFIESTO CSV
+                    </button>
+                    <button class="btn-secondary" onclick="printManifest()">
+                        🖨️ IMPRIMIR MANIFIESTO
+                    </button>
+                </div>
+                
+                <div id="shipmentsList">
+                    <div class="empty-state">Sin envíos aún</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: REPORTES -->
+        <div id="reportes" class="tab-content">
+            <div class="card">
+                <h2>📈 Reportes y Estadísticas</h2>
+                <p style="color: #666; font-size: 13px;">Funcionalidad en desarrollo</p>
+            </div>
+        </div>
+
+        <!-- TAB 6: CONFIGURACIÓN -->
+        <div id="configuracion" class="tab-content">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>⚙️ Datos Empresa</h2>
+                    <div class="form-group">
+                        <label>Nombre Empresa</label>
+                        <input type="text" id="companyName" placeholder="Ej: SOCIEDAD COMERCIAL TRANSPORTE">
+                    </div>
+                    <div class="form-group">
+                        <label>RIF/NIT</label>
+                        <input type="text" id="companyRIF" placeholder="Ej: J-12345678-0">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" id="companyPhone">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="companyEmail">
+                    </div>
+                    <button class="btn-primary" onclick="saveCompanySettings()">💾 Guardar Configuración</button>
+                </div>
+
+                <div class="card">
+                    <h2>🔐 Credenciales ZOOM</h2>
+                    <div class="info-box">
+                        ℹ️ Guarda tus credenciales de zoom.red para sincronizar automáticamente
+                    </div>
+                    <div class="form-group">
+                        <label>Usuario ZOOM</label>
+                        <input type="text" id="zoomUser" placeholder="Tu usuario de zoom.red">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña ZOOM</label>
+                        <input type="password" id="zoomPassword" placeholder="Contraseña">
+                    </div>
+                    <div class="form-group">
+                        <label>Código Empresa ZOOM</label>
+                        <input type="text" id="zoomCode" placeholder="Ej: ZM-12345">
+                    </div>
+                    <button class="btn-primary" onclick="saveZoomSettings()">💾 Guardar Credenciales</button>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 30px;">
+                <h2>🔒 Acceso Local API</h2>
+                <div class="info-box">
+                    ℹ️ Este acceso protege los endpoints locales del sistema. Configúralo con APP_BASIC_USER y APP_BASIC_PASSWORD en el entorno del servidor.
+                </div>
+                <div id="accessStatus" class="alert"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Usuario de acceso local</label>
+                        <input type="text" id="apiAccessUser" placeholder="Ej: operador">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña de acceso local</label>
+                        <input type="password" id="apiAccessPassword" placeholder="Ingresa la contraseña del backend">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" type="button" onclick="saveLocalAccess()">🔐 Validar Acceso</button>
+                    <button class="btn-secondary" type="button" onclick="clearLocalAccess()">🚪 Cerrar Acceso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="sistema-app.js"></script>
+</body>
+</html>
